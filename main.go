@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-chi/chi/"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 
@@ -38,6 +38,8 @@ func main() {
 
 	apiCfg := apiConfig{}
 
+	// https://github.com/libsql/libsql-client-go/#open-a-connection-to-sqld
+	// libsql://[your-database].turso.io?authToken=[your-auth-token]
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		log.Println("DATABASE_URL environment variable is not set")
@@ -88,13 +90,11 @@ func main() {
 
 	router.Mount("/v1", v1Router)
 	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: router,
-		// Fix for gosec G112: Add a timeout to prevent Slowloris attacks
-		ReadHeaderTimeout: 60 * time.Second,
+		Addr:              ":" + port,
+		Handler:           router,
+		ReadHeaderTimeout: time.Second * 5,
 	}
 
 	log.Printf("Serving on port: %s\n", port)
 	log.Fatal(srv.ListenAndServe())
 }
-
