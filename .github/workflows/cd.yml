@@ -21,14 +21,19 @@ jobs:
       - name: Build app
         run: ./scripts/buildprod.sh
 
-      # Usar versión más nueva
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v2'
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          project_id: 'seismic-gecko-467823-u4'
 
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: 'Verify setup'
+        run: |
+          gcloud config list
+          gcloud auth list --filter=status:ACTIVE --format="value(account)"
 
       - name: 'Build and Push Docker Image'
         run: |
