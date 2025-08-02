@@ -1,23 +1,46 @@
 name: cd
 
+# Se dispara en cada push a la rama 'main'
 on:
   push:
     branches: [main]
 
+# Define un trabajo (job) llamado 'deploy'
 jobs:
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # Usa la última versión de Ubuntu para ejecutar los pasos
 
     steps:
+      # Paso 1: Revisa el código del repositorio
       - name: Check out code
         uses: actions/checkout@v4
 
+      # Paso 2: Configura Go
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.23.0'
 
+      # Paso 3: Construye la aplicación
       - name: Build app
         run: ./scripts/buildprod.sh
+
+      # -- Inicio de los pasos nuevos --
+      
+      # Paso 4: Configura el CLI de gcloud y se autentica con GCP
+      # Usa el secreto GCP_CREDENTIALS que creaste en GitHub
+      - name: 'Set up gcloud'
+        uses: 'google-github-actions/setup-gcloud@v1'
+        with:
+          project_id: seismic-gecko-467823-u4 # Reemplaza con tu ID de proyecto de GCP
+          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+          # El servicio account key es el secreto que contiene tu archivo JSON.
+          
+      # Paso 5: Construye y sube la imagen de Docker a Artifact Registry
+      # Reemplaza PROJECT_ID y TAG con tus valores
+      - name: 'Build and Push Docker Image'
+        run: |-
+          gcloud builds submit --tag us-central1-docker.pkg.dev/seismic-gecko-467823-u4/notely-ar-repo/notely-image:v1 .
+
 
