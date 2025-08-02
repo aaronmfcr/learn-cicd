@@ -21,21 +21,15 @@ jobs:
       - name: Build app
         run: ./scripts/buildprod.sh
 
-      # Set up gcloud CLI
-      - name: 'Set up gcloud'
-        uses: 'google-github-actions/setup-gcloud@v1'
+      # Usar versión más nueva
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v2'
         with:
-          project_id: seismic-gecko-467823-u4
-          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
-          export_default_credentials: true
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-      # Explicitly authenticate (this step often resolves the auth issue)
-      - name: 'Authenticate with GCP'
-        run: |
-          echo '${{ secrets.GCP_CREDENTIALS }}' | gcloud auth activate-service-account --key-file=-
-          gcloud config set project seismic-gecko-467823-u4
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
 
-      # Build and push Docker image
       - name: 'Build and Push Docker Image'
         run: |
           gcloud builds submit --tag us-central1-docker.pkg.dev/seismic-gecko-467823-u4/notely-ar-repo/notely-image:v1 .
